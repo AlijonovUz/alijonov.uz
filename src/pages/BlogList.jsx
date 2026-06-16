@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import useStaggerAnimation from '../hooks/useStaggerAnimation';
 
 const TELEGRAPH_TOKEN = import.meta.env.VITE_TELEGRAPH_TOKEN;
 
@@ -66,6 +67,8 @@ const BlogList = () => {
 
   const years = Object.keys(blogsByYearMonth).sort((a, b) => b - a);
 
+  const animRef = useStaggerAnimation();
+
   return (
     <>
       <section className="section-title">
@@ -79,7 +82,7 @@ const BlogList = () => {
       <section className="flex align-items-start" style={{ minHeight: '80vh' }}>
         <div className="container">
           <div className="row justify-between align-top">
-            <div id="archive" className="col-md-7">
+            <div id="archive" className="col-md-7 stagger-animation" ref={animRef}>
 
               {years.length > 0 ? (
                 years.map(year => (
@@ -91,7 +94,7 @@ const BlogList = () => {
                         <ul className="list-wrapper">
                           {blogsByYearMonth[year][month].map(blog => (
                             <li key={blog.id}>
-                              <Link className="list-item" to={`/blog/${blog.slug}`}>
+                              <Link className="list-item anim-item" to={`/blog/${blog.slug}`}>
                                 <div className="date">{blog.dateFormatted}</div>
                                 <div className="title" dangerouslySetInnerHTML={{ __html: blog.title }} />
                               </Link>

@@ -1,16 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import profilePic from '../assets/images/alijonov.jpg';
+import useStaggerAnimation from '../hooks/useStaggerAnimation';
 
 const Home = ({ socialLinks }) => {
+  const animRef = useStaggerAnimation();
+
   return (
     <section id="home" className="flex align-items-center">
         <div className="container">
             <div className="row justify-between">
-                <div className="col-xl-8 col-lg-10 col-12">
+                <div className="col-xl-8 col-lg-10 col-12 stagger-animation" ref={animRef}>
                     <div className="about flex align-items-center">
-                        <img className="profile-picture align-self-start" src={profilePic} alt="Abdulbosit" />
-                        <div className="about-detail">
+                        <img className="anim-item profile-picture align-self-start" src={profilePic} alt="Abdulbosit" />
+                        <div className="about-detail anim-item">
                             <h1 className="title">Abdulbosit Alijonov</h1>
                             <h3 className="desc">Backend developer</h3>
                             <div className="social-links flex align-items-center">
@@ -24,8 +27,8 @@ const Home = ({ socialLinks }) => {
                     </div>
 
                     <div className="detail">
-                        <p className="size-big">I write about non-technical stuff in the technical world.</p>
-                        <div className="btns-wrapper">
+                        <p className="size-big anim-item">I write about non-technical stuff in the technical world.</p>
+                        <div className="btns-wrapper anim-item">
                             <Link to="/blog" className="btn btn-primary">Read Blog</Link>
                             <Link to="/about" className="btn btn-secondary">About Me</Link>
                         </div>
