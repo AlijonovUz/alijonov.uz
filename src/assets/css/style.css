@@ -379,16 +379,16 @@ footer p {
   box-sizing: border-box;
 }
 #home .about {
-  margin-bottom: 15px;
+  margin-bottom: 35px;
 }
 #home .profile-picture {
-  max-width: 140px;
+  width: 140px;
+  height: auto;
   margin-right: 40px;
-  border-radius: 50%;
 }
 @media (max-width: 767.98px) {
   #home .profile-picture {
-    max-width: 100px;
+    width: 100px;
     margin-bottom: 15px;
   }
 }
