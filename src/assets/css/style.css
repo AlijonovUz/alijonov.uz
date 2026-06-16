@@ -382,13 +382,13 @@ footer p {
   margin-bottom: 35px;
 }
 #home .profile-picture {
-  width: 140px;
-  height: auto;
+  max-width: 140px;
   margin-right: 40px;
+  border-radius: 50%;
 }
 @media (max-width: 767.98px) {
   #home .profile-picture {
-    width: 100px;
+    max-width: 100px;
     margin-bottom: 15px;
   }
 }
@@ -399,8 +399,6 @@ footer p {
   margin-right: 15px;
   color: #000;
   font-size: 22px;
-  display: inline-flex;
-  align-items: center;
 }
 #home .social-links .icon-indiehackers {
   width: 20px;
