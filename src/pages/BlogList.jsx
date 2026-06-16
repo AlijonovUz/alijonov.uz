@@ -67,7 +67,7 @@ const BlogList = () => {
 
   const years = Object.keys(blogsByYearMonth).sort((a, b) => b - a);
 
-  const animRef = useStaggerAnimation();
+  const animRef = useStaggerAnimation([blogsByYearMonth]);
 
   return (
     <>

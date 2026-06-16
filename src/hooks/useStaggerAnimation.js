@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
  * Elements with .anim-item class inside the container animate in from below
  * (y: 15px → 0) with staggered delays, triggered when container enters viewport.
  *
- * @param {Array} deps - optional deps array (pass [blog] in BlogPost to re-run after data loads)
+ * @param {Array} deps - optional deps array (pass [data] to re-run after async data loads)
  */
 const useStaggerAnimation = (deps = []) => {
   const containerRef = useRef(null);
@@ -24,7 +24,11 @@ const useStaggerAnimation = (deps = []) => {
       el.style.transition = 'none';
     });
 
+    let animated = false;
+
     const runAnimation = () => {
+      if (animated) return;
+      animated = true;
       animItems.forEach((el, index) => {
         // delay: .3 + repeatDelay: .2 per item — matches TweenMax.staggerFrom options
         const delay = 0.3 + index * 0.2;
@@ -36,28 +40,22 @@ const useStaggerAnimation = (deps = []) => {
       });
     };
 
-    const dataScroll = container.getAttribute('data-scroll');
+    // Use IntersectionObserver — fires immediately if already visible (threshold: 0)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            runAnimation();
+            observer.unobserve(container);
+          }
+        });
+      },
+      { threshold: 0, rootMargin: '0px 0px 250px 0px' }
+    );
+    observer.observe(container);
 
-    if (dataScroll === 'false') {
-      // Fire immediately (no scroll required)
-      runAnimation();
-    } else {
-      // Use IntersectionObserver to replace ScrollMonitor — trigger when visible
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              runAnimation();
-              observer.unobserve(container);
-            }
-          });
-        },
-        { rootMargin: '0px 0px 250px 0px' } // matches scrollMonitor.create(anim, -250)
-      );
-      observer.observe(container);
+    return () => observer.disconnect();
 
-      return () => observer.disconnect();
-    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
