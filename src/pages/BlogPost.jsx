@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import useStaggerAnimation from '../hooks/useStaggerAnimation';
 
 const TELEGRAPH_TOKEN = import.meta.env.VITE_TELEGRAPH_TOKEN;
 
@@ -12,7 +11,6 @@ const BlogPost = () => {
   const [prevPost, setPrevPost] = useState(null);
   const [nextPost, setNextPost] = useState(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const animRef = useStaggerAnimation([blog]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -114,8 +112,8 @@ const BlogPost = () => {
 
       <section className="flex align-items-start" style={{ minHeight: '80vh' }}>
         <div className="container">
-          <div className="row article-wrapper justify-center align-top stagger-animation" ref={animRef}>
-            <div className="article-header col-md-8 anim-item">
+          <div className="row article-wrapper justify-center align-top">
+            <div className="article-header col-md-8">
               <h1 className="title">
                 {loading ? <span style={{ opacity: 0.5 }}>Yuklanmoqda...</span> : <span dangerouslySetInnerHTML={{ __html: blog.title }} />}
               </h1>
@@ -145,7 +143,7 @@ const BlogPost = () => {
               </div>
             </div>
 
-            <article className="content col-md-8 col-12 anim-item">
+            <article className="content col-md-8 col-12">
               {loading ? (
                 <p style={{ color: '#888' }}>Maqola mazmuni yuklanmoqda...</p>
               ) : (
@@ -153,7 +151,7 @@ const BlogPost = () => {
               )}
             </article>
 
-            <div className="div col-lg-7 col-md-8 col-12 anim-item">
+            <div className="div col-lg-7 col-md-8 col-12">
               <div className="subscribe-form " id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form">
                 <h6>Obuna Bo'ling</h6>
                 <p>
