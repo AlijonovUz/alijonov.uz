@@ -717,7 +717,7 @@ footer p {
   top: 0;
   left: 0;
   width: 100%;
-  background: #fff;
+  background: transparent;
   z-index: 11;
 }
 .progress-bar .bar {

@@ -21,10 +21,10 @@ const Navbar = ({ settings }) => {
                     <Link className="logo" to="/">Alijonov's Blog</Link>
                 </div>
                 <ul className="nav align-items-center">
-                    {settings?.resume_file && <li><a className="list-item" href={settings.resume_file} target="_blank" rel="noreferrer">Resume</a></li>}
-                    <li><Link className="list-item" to="/blog">Blog</Link></li>
-                    <li><Link className="list-item" to="/about">About</Link></li>
-                    {settings?.telegram_channel && <li><a className="list-item" href={settings.telegram_channel} target="_blank" rel="noreferrer">Channel</a></li>}
+                    {settings?.resume_file && <li><a className="list-item" href={settings.resume_file} target="_blank" rel="noreferrer" onClick={() => setNavOpen(false)}>Resume</a></li>}
+                    <li><Link className="list-item" to="/blog" onClick={() => setNavOpen(false)}>Blog</Link></li>
+                    <li><Link className="list-item" to="/about" onClick={() => setNavOpen(false)}>About</Link></li>
+                    {settings?.telegram_channel && <li><a className="list-item" href={settings.telegram_channel} target="_blank" rel="noreferrer" onClick={() => setNavOpen(false)}>Channel</a></li>}
                 </ul>
                 <div className="burger-menu" onClick={() => setNavOpen(!navOpen)}>
                     <div className="bar bar--top"></div>

@@ -15,7 +15,7 @@ const Home = ({ socialLinks }) => {
                         <img className="anim-item profile-picture align-self-start" src={profilePic} alt="Abdulbosit" />
                         <div className="about-detail anim-item">
                             <h1 className="title">Abdulbosit Alijonov</h1>
-                            <h3 className="desc">Backend developer</h3>
+                             <h3 className="desc">Backend developer</h3>
                             <div className="social-links flex align-items-center">
                                 {socialLinks && socialLinks.map(link => (
                                     <a key={link.platform} target="_blank" href={link.url} rel="noreferrer">

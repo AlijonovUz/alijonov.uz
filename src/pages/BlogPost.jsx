@@ -70,9 +70,15 @@ const BlogPost = () => {
       setScrollProgress(progress);
     };
 
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [loading]);
 
   useEffect(() => {
     const fetchPostAndPagination = async () => {
@@ -211,9 +217,9 @@ const BlogPost = () => {
 
             <div className="div col-lg-7 col-md-8 col-12">
               <div className="subscribe-form " id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form">
-                <h6>Obuna Bo'ling</h6>
+                <h6>Subscribe</h6>
                 <p>
-                  Yangi maqola, maruza va darslarimni <a href="https://t.me/abdulbosit_alijonov">@abdulbosit_alijonov</a> telegram kanalimda topishingiz mumkin.
+                  You can find my latest articles, lectures, and lessons on my Telegram channel <a href="https://t.me/abdulbosit_alijonov">@abdulbosit_alijonov</a>.
                 </p>
               </div>
             </div>

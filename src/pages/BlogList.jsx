@@ -7,6 +7,24 @@ const TELEGRAPH_TOKEN = import.meta.env.VITE_TELEGRAPH_TOKEN;
 const BlogList = () => {
   const [blogsByYearMonth, setBlogsByYearMonth] = useState({});
   const [loading, setLoading] = useState(true);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.body.scrollHeight - window.innerHeight;
+      const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
+      setScrollProgress(progress);
+    };
+
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [loading]);
 
   useEffect(() => {
     document.title = "Blog - Abdulbosit Alijonov";
@@ -68,6 +86,10 @@ const BlogList = () => {
 
   return (
     <>
+      <div className="progress-bar">
+        <div className="bar" style={{ width: `${scrollProgress}%` }}></div>
+      </div>
+
       <section className="section-title">
         <div className="container">
           <div className="section-content">
@@ -111,9 +133,9 @@ const BlogList = () => {
             </div>
 
             <div className="subscribe-form col-md-4 sticky" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form">
-              <h6>Obuna Bo'ling</h6>
+              <h6>Subscribe</h6>
               <p>
-                Yangi maqola, maruza va darslarimni <a href="https://t.me/abdulbosit_alijonov" target="_blank" rel="noopener noreferrer">@abdulbosit_alijonov</a> telegram kanalimda topishingiz mumkin.
+                You can find my latest articles, lectures, and lessons on my Telegram channel <a href="https://t.me/abdulbosit_alijonov" target="_blank" rel="noopener noreferrer">@abdulbosit_alijonov</a>.
               </p>
             </div>
 
