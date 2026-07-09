@@ -1,8 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
 const TELEGRAPH_TOKEN = import.meta.env.VITE_TELEGRAPH_TOKEN;
+
+const getTelegramPostId = (src) => {
+  try {
+    const urlObj = new URL(src, 'https://telegra.ph');
+    const telegramUrl = urlObj.searchParams.get('url');
+    if (telegramUrl) {
+      const tUrl = new URL(telegramUrl);
+      if (tUrl.hostname === 't.me' || tUrl.hostname === 'telegram.me') {
+        return tUrl.pathname.replace(/^\//, '');
+      }
+    }
+  } catch (e) {
+    console.error("Error parsing telegram embed URL:", e);
+  }
+  return null;
+};
+
+const TelegramEmbed = ({ post }) => {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    // Clear container
+    containerRef.current.innerHTML = '';
+    
+    // Create script element
+    const script = document.createElement('script');
+    script.src = 'https://telegram.org/js/telegram-widget.js?24';
+    script.async = true;
+    script.setAttribute('data-telegram-post', post);
+    script.setAttribute('data-width', '100%');
+    script.setAttribute('data-userpic', 'true');
+    
+    containerRef.current.appendChild(script);
+  }, [post]);
+
+  return (
+    <div 
+      ref={containerRef} 
+      className="telegram-embed-container" 
+      style={{ 
+        width: '100%', 
+        minHeight: '150px', 
+        display: 'flex', 
+        justifyContent: 'center',
+        margin: '20px 0' 
+      }} 
+    />
+  );
+};
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -93,6 +144,13 @@ const BlogPost = () => {
 
     if ((tag === 'img' || tag === 'iframe' || tag === 'video') && props.src && props.src.startsWith('/')) {
       props.src = 'https://telegra.ph' + props.src;
+    }
+
+    if (tag === 'iframe' && props.src && props.src.includes('/embed/telegram')) {
+      const postId = getTelegramPostId(props.src);
+      if (postId) {
+        return <TelegramEmbed key={index} post={postId} />;
+      }
     }
 
     return (
