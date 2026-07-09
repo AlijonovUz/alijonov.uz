@@ -170,9 +170,6 @@ const BlogPost = () => {
 
   return (
     <>
-      <div className="progress-bar">
-        <div className="bar" style={{ width: `${scrollProgress}%` }}></div>
-      </div>
 
       <section className="flex align-items-start" style={{ minHeight: '80vh' }}>
         <div className="container">
@@ -247,6 +244,9 @@ const BlogPost = () => {
         </div>
       </section>
 
+      <div className="progress-bar">
+        <div className="bar" style={{ width: `${scrollProgress}%` }}></div>
+      </div>
     </>
   );
 };

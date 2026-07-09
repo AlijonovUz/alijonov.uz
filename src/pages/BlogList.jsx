@@ -86,9 +86,6 @@ const BlogList = () => {
 
   return (
     <>
-      <div className="progress-bar">
-        <div className="bar" style={{ width: `${scrollProgress}%` }}></div>
-      </div>
 
       <section className="section-title">
         <div className="container">
@@ -142,6 +139,10 @@ const BlogList = () => {
           </div>
         </div>
       </section>
+
+      <div className="progress-bar">
+        <div className="bar" style={{ width: `${scrollProgress}%` }}></div>
+      </div>
     </>
   );
 };
