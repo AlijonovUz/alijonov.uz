@@ -142,6 +142,21 @@ const BlogPost = () => {
     const { tag, attrs, children } = node;
     const Tag = tag;
 
+    if (tag === 'p') {
+      const isEmpty = !children || children.length === 0 || children.every(child => {
+        if (typeof child === 'string') {
+          return child.trim() === '';
+        }
+        if (child && typeof child === 'object') {
+          return child.tag === 'br';
+        }
+        return false;
+      });
+      if (isEmpty) {
+        return null;
+      }
+    }
+
     const props = { ...attrs, key: index };
     if (props.class) {
       props.className = props.class;
