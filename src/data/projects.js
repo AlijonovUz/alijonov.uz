@@ -15,13 +15,13 @@ export const projects = [
     title: 'E-Komplektatsiya',
     description: 'Gaz sohasi uchun korporativ portal va xaridlar platformasi',
     image: eKomplektasiyaImg,
-    url: 'https://raqamlinazorat.uz/project.html?id=9',
+    url: 'https://raqamlinazorat.uz/project.html?id=12',
   },
   {
     id: 'm-gaz',
     title: 'M-Gaz',
     description: 'Gaz hisobini yuritish va monitoring qilish uchun ERP tizimi',
     image: mGazImg,
-    url: 'https://raqamlinazorat.uz/project.html?id=12',
+    url: 'https://raqamlinazorat.uz/project.html?id=9',
   },
 ];
