@@ -63,9 +63,15 @@ export const initDOMTamperProtection = (onTamper) => {
   if (typeof window === 'undefined' || !window.MutationObserver) return () => {};
 
   let isHandling = false;
+  let isReady = false;
+
+  // Give React 500ms to complete initial mount without triggering false positives
+  setTimeout(() => {
+    isReady = true;
+  }, 500);
 
   const observer = new MutationObserver((mutations) => {
-    if (isHandling) return;
+    if (!isReady || isHandling) return;
 
     for (const mutation of mutations) {
       if (mutation.type === 'attributes') {
@@ -73,9 +79,9 @@ export const initDOMTamperProtection = (onTamper) => {
         if (
           target === document.body ||
           target === document.documentElement ||
-          (target.id && (target.id === 'root' || target.id === 'archive' || target.id === 'about-me'))
+          (target.id && (target.id === 'archive' || target.id === 'about-me'))
         ) {
-          if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
+          if (mutation.attributeName === 'style') {
             isHandling = true;
             onTamper();
             setTimeout(() => {
@@ -91,7 +97,7 @@ export const initDOMTamperProtection = (onTamper) => {
   observer.observe(document.documentElement, {
     attributes: true,
     subtree: true,
-    attributeFilter: ['style', 'class'],
+    attributeFilter: ['style'],
   });
 
   return () => observer.disconnect();

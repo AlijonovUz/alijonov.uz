@@ -2,19 +2,24 @@ import { useState, useEffect } from 'react';
 
 /**
  * Custom hook to detect if browser DevTools is open.
- * Uses a combination of:
+ * Uses:
  * 1. Window dimension differences (docked DevTools - right, bottom, left)
  * 2. Console object getter/toString execution triggers (undocked DevTools)
- * 3. Debugger timing threshold analysis
  */
 const useDevToolsDetector = () => {
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
 
   useEffect(() => {
     let isOpen = false;
-    const threshold = 160;
+    // DevTools panels are typically >= 250px. Normal browser chrome (tabs+url+bookmarks) is < 180px.
+    const threshold = 220;
 
     const check = () => {
+      // Guard against initial unmeasured render
+      if (!window.innerWidth || !window.innerHeight || !window.outerWidth || !window.outerHeight) {
+        return;
+      }
+
       let detected = false;
 
       // 1. Dimension check (docked devtools)
@@ -43,7 +48,6 @@ const useDevToolsDetector = () => {
       };
 
       try {
-        // Evaluate in console (ignored if devtools console is not inspecting/open)
         console.debug(element);
         console.debug(reg);
       } catch {
@@ -56,14 +60,15 @@ const useDevToolsDetector = () => {
       }
     };
 
-    // Run initial check
-    check();
+    // Run check after initial layout is ready
+    const initialTimer = setTimeout(check, 100);
 
-    // Check frequently (every 200ms) and immediately on window resize
-    const interval = setInterval(check, 200);
+    // Check periodically (every 250ms) and immediately on window resize
+    const interval = setInterval(check, 250);
     window.addEventListener('resize', check);
 
     return () => {
+      clearTimeout(initialTimer);
       clearInterval(interval);
       window.removeEventListener('resize', check);
     };
