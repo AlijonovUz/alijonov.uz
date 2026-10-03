@@ -1,59 +1,68 @@
 import { useState, useEffect } from 'react';
+import DisableDevtool from 'disable-devtool';
 
-// Docked DevTools takes at least 250px in width (side dock) or 350px+ in height (bottom dock).
-// Normal browser chrome (address bar + tabs + bookmarks + system titlebar) takes max 180-220px in height, 0-16px in width.
-const WIDTH_THRESHOLD = 200;
-const HEIGHT_THRESHOLD = 280;
+let devToolsOpen = false;
 
 /**
  * Synchronous check for DevTools status
  */
 export const checkIsDevToolsOpen = () => {
   if (typeof window === 'undefined') return false;
-
-  const innerW = window.innerWidth;
-  const innerH = window.innerHeight;
-  const outerW = window.outerWidth;
-  const outerH = window.outerHeight;
-
-  if (!innerW || !innerH || !outerW || !outerH) {
-    return false;
+  try {
+    if (typeof DisableDevtool.isDevToolOpened === 'function' && DisableDevtool.isDevToolOpened()) {
+      return true;
+    }
+  } catch {
+    // ignore
   }
-
-  const widthDiff = outerW - innerW;
-  const heightDiff = outerH - innerH;
-
-  if (widthDiff > WIDTH_THRESHOLD || heightDiff > HEIGHT_THRESHOLD) {
-    return true;
-  }
-
-  return false;
+  return devToolsOpen;
 };
 
 /**
  * Custom hook to detect if browser DevTools is open in real-time.
+ * Uses DisableDevtool engine with 8 detection strategies (Debugger, Size, Getter, RegToString, etc.)
  */
 const useDevToolsDetector = () => {
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(checkIsDevToolsOpen);
 
   useEffect(() => {
-    let isOpen = checkIsDevToolsOpen();
+    let mounted = true;
 
-    const check = () => {
-      const detected = checkIsDevToolsOpen();
-      if (detected !== isOpen) {
-        isOpen = detected;
-        setIsDevToolsOpen(detected);
+    try {
+      DisableDevtool({
+        ondevtoolopen: () => {
+          if (!mounted) return;
+          devToolsOpen = true;
+          setIsDevToolsOpen(true);
+        },
+        ondevtoolclose: () => {
+          if (!mounted) return;
+          devToolsOpen = false;
+          setIsDevToolsOpen(false);
+        },
+        disableMenu: true,
+        disableCut: true,
+        disableCopy: true,
+        disablePaste: true,
+        clearLog: true,
+        interval: 100,
+      });
+    } catch {
+      // ignore
+    }
+
+    const interval = setInterval(() => {
+      if (!mounted) return;
+      const isOpen = checkIsDevToolsOpen();
+      if (isOpen !== devToolsOpen) {
+        devToolsOpen = isOpen;
+        setIsDevToolsOpen(isOpen);
       }
-    };
-
-    // Run check on interval (100ms) and on window resize
-    const interval = setInterval(check, 100);
-    window.addEventListener('resize', check);
+    }, 100);
 
     return () => {
+      mounted = false;
       clearInterval(interval);
-      window.removeEventListener('resize', check);
     };
   }, []);
 
@@ -61,5 +70,3 @@ const useDevToolsDetector = () => {
 };
 
 export default useDevToolsDetector;
-
-
