@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
-// Docked DevTools takes at least 260px in width (side dock) or 320px in height (bottom dock).
+// Docked DevTools takes at least 250px in width (side dock) or 350px+ in height (bottom dock).
 // Normal browser chrome (address bar + tabs + bookmarks + system titlebar) takes max 180-220px in height, 0-16px in width.
-const WIDTH_THRESHOLD = 260;
-const HEIGHT_THRESHOLD = 320;
+const WIDTH_THRESHOLD = 200;
+const HEIGHT_THRESHOLD = 280;
 
 /**
  * Synchronous check for DevTools status

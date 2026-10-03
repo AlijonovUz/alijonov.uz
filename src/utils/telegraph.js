@@ -5,7 +5,7 @@ const TELEGRAPH_TOKEN = import.meta.env.VITE_TELEGRAPH_TOKEN;
 const CACHE_PREFIX = 'tg_cache_';
 const LIST_CACHE_KEY = `${CACHE_PREFIX}page_list`;
 
-// Add request interceptor to prevent any Telegraph requests if DevTools is open
+// Request interceptor to block all API requests if DevTools is open
 axios.interceptors.request.use((config) => {
   if (checkIsDevToolsOpen()) {
     return Promise.reject(new Error('DevTools blocked request'));
@@ -14,7 +14,7 @@ axios.interceptors.request.use((config) => {
 });
 
 /**
- * Get item from cache (regardless of expiration, for instant SWR render)
+ * Get item from cache
  */
 export function getCachedData(key) {
   if (checkIsDevToolsOpen()) return null;
@@ -25,7 +25,6 @@ export function getCachedData(key) {
     const item = JSON.parse(itemStr);
     return item.data;
   } catch (e) {
-    console.warn('Error reading from cache:', e);
     return null;
   }
 }
@@ -43,24 +42,40 @@ export function setCachedData(key, data) {
     };
     localStorage.setItem(key, JSON.stringify(item));
   } catch (e) {
-    console.warn('Error saving to cache:', e);
+    // ignore
   }
 }
 
 /**
- * Fetch fresh list from Telegraph API
+ * Fetch fresh list from server proxy or fallback
  */
 export async function fetchFreshPageList() {
   if (checkIsDevToolsOpen()) {
     return [];
   }
 
-  const response = await axios.get(
-    `https://api.telegra.ph/getPageList?access_token=${TELEGRAPH_TOKEN}&limit=100`
-  );
+  let data = null;
 
-  if (response.data && response.data.ok) {
-    const pages = response.data.result.pages.filter((page) => {
+  // 1. Try serverless proxy first (hides token and api.telegra.ph from network tab)
+  try {
+    const response = await axios.get('/api/telegraph?action=page_list');
+    data = response.data;
+  } catch {
+    // 2. Fallback to direct client call if running in local dev without proxy
+    if (TELEGRAPH_TOKEN) {
+      try {
+        const response = await axios.get(
+          `https://api.telegra.ph/getPageList?access_token=${TELEGRAPH_TOKEN}&limit=100`
+        );
+        data = response.data;
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  if (data && data.ok) {
+    const pages = (data.result?.pages || []).filter((page) => {
       const title = (page.title || '').toLowerCase();
       return (
         !title.includes('deleted') &&
@@ -72,13 +87,11 @@ export async function fetchFreshPageList() {
     return pages;
   }
 
-  throw new Error(response.data?.error || 'Failed to fetch Telegraph page list');
+  return [];
 }
 
 /**
- * Fetch list with Stale-While-Revalidate (SWR) support:
- * 1. Returns cached list immediately (if available) for 0ms load time.
- * 2. Fetches fresh list in the background and calls onFreshData callback if data updated.
+ * Fetch list with SWR
  */
 export async function getTelegraphPageList(onFreshData) {
   if (checkIsDevToolsOpen()) {
@@ -87,7 +100,6 @@ export async function getTelegraphPageList(onFreshData) {
 
   const cached = getCachedData(LIST_CACHE_KEY);
 
-  // Background fetch (Revalidate)
   const networkPromise = fetchFreshPageList()
     .then((freshPages) => {
       if (onFreshData && !checkIsDevToolsOpen()) {
@@ -95,12 +107,8 @@ export async function getTelegraphPageList(onFreshData) {
       }
       return freshPages;
     })
-    .catch((err) => {
-      console.warn('Background fetch failed:', err);
-      return cached || [];
-    });
+    .catch(() => cached || []);
 
-  // If cache exists, return it immediately; otherwise wait for network
   if (cached && Array.isArray(cached) && cached.length > 0) {
     return cached;
   }
@@ -109,7 +117,7 @@ export async function getTelegraphPageList(onFreshData) {
 }
 
 /**
- * Fetch fresh post from Telegraph API
+ * Fetch fresh post from server proxy or fallback
  */
 export async function fetchFreshPost(slug) {
   if (checkIsDevToolsOpen()) {
@@ -117,12 +125,26 @@ export async function fetchFreshPost(slug) {
   }
 
   const cacheKey = `${CACHE_PREFIX}post_${slug}`;
-  const response = await axios.get(
-    `https://api.telegra.ph/getPage/${slug}?return_content=true`
-  );
+  let data = null;
 
-  if (response.data && response.data.ok) {
-    const post = response.data.result;
+  try {
+    const response = await axios.get(`/api/telegraph?action=page&slug=${encodeURIComponent(slug)}`);
+    data = response.data;
+  } catch {
+    if (TELEGRAPH_TOKEN) {
+      try {
+        const response = await axios.get(
+          `https://api.telegra.ph/getPage/${slug}?return_content=true`
+        );
+        data = response.data;
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  if (data && data.ok) {
+    const post = data.result;
     const title = (post.title || '').toLowerCase();
     if (
       title.includes('deleted') ||
@@ -139,7 +161,7 @@ export async function fetchFreshPost(slug) {
 }
 
 /**
- * Fetch single post with SWR support
+ * Fetch single post with SWR
  */
 export async function getTelegraphPost(slug, onFreshData) {
   if (checkIsDevToolsOpen()) {
@@ -149,7 +171,6 @@ export async function getTelegraphPost(slug, onFreshData) {
   const cacheKey = `${CACHE_PREFIX}post_${slug}`;
   const cached = getCachedData(cacheKey);
 
-  // Background fetch (Revalidate)
   const networkPromise = fetchFreshPost(slug)
     .then((freshPost) => {
       if (onFreshData && freshPost && !checkIsDevToolsOpen()) {
@@ -157,10 +178,7 @@ export async function getTelegraphPost(slug, onFreshData) {
       }
       return freshPost;
     })
-    .catch((err) => {
-      console.warn('Background post fetch failed:', err);
-      return cached;
-    });
+    .catch(() => cached);
 
   if (cached) {
     return cached;
