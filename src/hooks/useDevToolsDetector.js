@@ -1,67 +1,57 @@
 import { useState, useEffect } from 'react';
 
-// Real docked DevTools takes at least 260px in height or width.
-// Normal browser chrome (address bar + tabs + bookmarks + window borders) takes <= 160px.
+// Docked DevTools takes at least 260px in width (side dock) or 320px in height (bottom dock).
+// Normal browser chrome (address bar + tabs + bookmarks + system titlebar) takes max 180-220px in height, 0-16px in width.
 const WIDTH_THRESHOLD = 260;
-const HEIGHT_THRESHOLD = 260;
+const HEIGHT_THRESHOLD = 320;
 
-let isDevToolsOpenState = false;
-
+/**
+ * Synchronous check for DevTools status
+ */
 export const checkIsDevToolsOpen = () => {
-  return isDevToolsOpenState;
+  if (typeof window === 'undefined') return false;
+
+  const innerW = window.innerWidth;
+  const innerH = window.innerHeight;
+  const outerW = window.outerWidth;
+  const outerH = window.outerHeight;
+
+  if (!innerW || !innerH || !outerW || !outerH) {
+    return false;
+  }
+
+  const widthDiff = outerW - innerW;
+  const heightDiff = outerH - innerH;
+
+  if (widthDiff > WIDTH_THRESHOLD || heightDiff > HEIGHT_THRESHOLD) {
+    return true;
+  }
+
+  return false;
 };
 
 /**
  * Custom hook to detect if browser DevTools is open in real-time.
- * Strictly prevents false positives during page load / reload.
  */
 const useDevToolsDetector = () => {
-  // Always initialize to false so normal reloads NEVER flash 404
-  const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
+  const [isDevToolsOpen, setIsDevToolsOpen] = useState(checkIsDevToolsOpen);
 
   useEffect(() => {
-    let mounted = true;
+    let isOpen = checkIsDevToolsOpen();
 
     const check = () => {
-      if (!mounted || typeof window === 'undefined') return;
-
-      const innerW = window.innerWidth;
-      const innerH = window.innerHeight;
-      const outerW = window.outerWidth;
-      const outerH = window.outerHeight;
-
-      // Ensure window dimensions are valid and non-zero
-      if (!innerW || !innerH || !outerW || !outerH) {
-        return;
-      }
-
-      let detected = false;
-
-      // Dimension check for docked DevTools (right, left, or bottom)
-      const widthDiff = outerW - innerW;
-      const heightDiff = outerH - innerH;
-
-      if (widthDiff > WIDTH_THRESHOLD || heightDiff > HEIGHT_THRESHOLD) {
-        detected = true;
-      }
-
-      // Update state if changed
-      if (detected !== isDevToolsOpenState) {
-        isDevToolsOpenState = detected;
+      const detected = checkIsDevToolsOpen();
+      if (detected !== isOpen) {
+        isOpen = detected;
         setIsDevToolsOpen(detected);
       }
     };
 
-    // Give browser 100ms on initial mount to settle dimensions before first evaluation
-    const initialTimer = setTimeout(check, 100);
-
-    // Continuous check every 200ms and on window resize
-    const interval = setInterval(check, 200);
+    // Run check on interval (100ms) and on window resize
+    const interval = setInterval(check, 100);
     window.addEventListener('resize', check);
 
     return () => {
-      mounted = false;
-      clearTimeout(initialTimer);
       clearInterval(interval);
       window.removeEventListener('resize', check);
     };
@@ -71,4 +61,5 @@ const useDevToolsDetector = () => {
 };
 
 export default useDevToolsDetector;
+
 
