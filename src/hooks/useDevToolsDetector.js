@@ -1,91 +1,67 @@
 import { useState, useEffect } from 'react';
 
-// Real docked DevTools takes at least 250px-400px.
-// Normal browser chrome (address bar + tabs + bookmarks) takes 70px-180px in height, 0-20px in width.
-const WIDTH_THRESHOLD = 220;
-const HEIGHT_THRESHOLD = 240;
+// Real docked DevTools takes at least 260px in height or width.
+// Normal browser chrome (address bar + tabs + bookmarks + window borders) takes <= 160px.
+const WIDTH_THRESHOLD = 260;
+const HEIGHT_THRESHOLD = 260;
 
-/**
- * Synchronous check for DevTools status
- */
+let isDevToolsOpenState = false;
+
 export const checkIsDevToolsOpen = () => {
-  if (typeof window === 'undefined') return false;
-  if (!window.innerWidth || !window.outerWidth || !window.outerHeight || !window.innerHeight) {
-    return false;
-  }
-
-  const widthDiff = window.outerWidth - window.innerWidth;
-  const heightDiff = window.outerHeight - window.innerHeight;
-
-  if (widthDiff > WIDTH_THRESHOLD || heightDiff > HEIGHT_THRESHOLD) {
-    return true;
-  }
-
-  return false;
+  return isDevToolsOpenState;
 };
 
 /**
  * Custom hook to detect if browser DevTools is open in real-time.
+ * Strictly prevents false positives during page load / reload.
  */
 const useDevToolsDetector = () => {
-  const [isDevToolsOpen, setIsDevToolsOpen] = useState(checkIsDevToolsOpen);
+  // Always initialize to false so normal reloads NEVER flash 404
+  const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
 
   useEffect(() => {
-    let isOpen = checkIsDevToolsOpen();
+    let mounted = true;
 
     const check = () => {
-      if (!window.innerWidth || !window.innerHeight || !window.outerWidth || !window.outerHeight) {
+      if (!mounted || typeof window === 'undefined') return;
+
+      const innerW = window.innerWidth;
+      const innerH = window.innerHeight;
+      const outerW = window.outerWidth;
+      const outerH = window.outerHeight;
+
+      // Ensure window dimensions are valid and non-zero
+      if (!innerW || !innerH || !outerW || !outerH) {
         return;
       }
 
       let detected = false;
 
-      // 1. Dimension check (docked devtools)
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
+      // Dimension check for docked DevTools (right, left, or bottom)
+      const widthDiff = outerW - innerW;
+      const heightDiff = outerH - innerH;
 
       if (widthDiff > WIDTH_THRESHOLD || heightDiff > HEIGHT_THRESHOLD) {
         detected = true;
       }
 
-      // 2. Custom element / getter trigger (undocked or console active)
-      const element = new Image();
-      Object.defineProperty(element, 'id', {
-        get: function () {
-          detected = true;
-          return 'devtools-detected';
-        },
-        configurable: true,
-      });
-
-      // 3. Regex / function evaluation trigger
-      const reg = /./;
-      reg.toString = function () {
-        detected = true;
-        return 'devtools-detected';
-      };
-
-      try {
-        console.debug(element);
-        console.debug(reg);
-      } catch {
-        // ignore
-      }
-
-      if (detected !== isOpen) {
-        isOpen = detected;
+      // Update state if changed
+      if (detected !== isDevToolsOpenState) {
+        isDevToolsOpenState = detected;
         setIsDevToolsOpen(detected);
       }
     };
 
-    // Run check immediately
-    check();
+    // Give browser 100ms on initial mount to settle dimensions before first evaluation
+    const initialTimer = setTimeout(check, 100);
 
-    // Check periodically (every 150ms) and on window resize
-    const interval = setInterval(check, 150);
+    // Continuous check every 200ms and on window resize
+    const interval = setInterval(check, 200);
     window.addEventListener('resize', check);
 
     return () => {
+      mounted = false;
+      clearTimeout(initialTimer);
       clearInterval(interval);
       window.removeEventListener('resize', check);
     };
@@ -95,3 +71,4 @@ const useDevToolsDetector = () => {
 };
 
 export default useDevToolsDetector;
+

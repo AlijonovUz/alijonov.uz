@@ -9,7 +9,7 @@ import BlogList from './pages/BlogList';
 import BlogPost from './pages/BlogPost';
 import NotFound from './pages/NotFound';
 import useDevToolsDetector from './hooks/useDevToolsDetector';
-import { initConsoleProtection, initDOMTamperProtection, initInteractionProtection } from './utils/security';
+import { initConsoleProtection, initInteractionProtection } from './utils/security';
 
 function App() {
   const [settings] = useState({
@@ -26,26 +26,15 @@ function App() {
 
   const location = useLocation();
   const isDevToolsOpen = useDevToolsDetector();
-  const [tampered, setTampered] = useState(false);
 
   useEffect(() => {
     initConsoleProtection();
-    const disconnectObserver = initDOMTamperProtection(() => {
-      setTampered(true);
-    });
     const disconnectInteraction = initInteractionProtection();
 
     return () => {
-      disconnectObserver();
       disconnectInteraction();
     };
   }, []);
-
-  useEffect(() => {
-    if (!isDevToolsOpen && tampered) {
-      setTampered(false);
-    }
-  }, [isDevToolsOpen, tampered]);
 
   useEffect(() => {
     const handleContextMenu = (e) => {
@@ -116,7 +105,7 @@ function App() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  if (isDevToolsOpen || tampered) {
+  if (isDevToolsOpen) {
     return <NotFound />;
   }
 
