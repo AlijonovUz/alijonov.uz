@@ -1,17 +1,23 @@
 import { useState, useEffect } from 'react';
 
+// Real docked DevTools takes at least 250px-400px.
+// Normal browser chrome (address bar + tabs + bookmarks) takes 70px-180px in height, 0-20px in width.
+const WIDTH_THRESHOLD = 220;
+const HEIGHT_THRESHOLD = 240;
+
 /**
  * Synchronous check for DevTools status
  */
 export const checkIsDevToolsOpen = () => {
   if (typeof window === 'undefined') return false;
-  if (!window.innerWidth || !window.outerWidth) return false;
+  if (!window.innerWidth || !window.outerWidth || !window.outerHeight || !window.innerHeight) {
+    return false;
+  }
 
-  const threshold = 160;
   const widthDiff = window.outerWidth - window.innerWidth;
   const heightDiff = window.outerHeight - window.innerHeight;
 
-  if (widthDiff > threshold || heightDiff > threshold) {
+  if (widthDiff > WIDTH_THRESHOLD || heightDiff > HEIGHT_THRESHOLD) {
     return true;
   }
 
@@ -22,12 +28,10 @@ export const checkIsDevToolsOpen = () => {
  * Custom hook to detect if browser DevTools is open in real-time.
  */
 const useDevToolsDetector = () => {
-  // Initialize synchronously on first render so routes/APIs are never called if DevTools is already open
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(checkIsDevToolsOpen);
 
   useEffect(() => {
     let isOpen = checkIsDevToolsOpen();
-    const threshold = 160;
 
     const check = () => {
       if (!window.innerWidth || !window.innerHeight || !window.outerWidth || !window.outerHeight) {
@@ -40,7 +44,7 @@ const useDevToolsDetector = () => {
       const widthDiff = window.outerWidth - window.innerWidth;
       const heightDiff = window.outerHeight - window.innerHeight;
 
-      if (widthDiff > threshold || heightDiff > threshold) {
+      if (widthDiff > WIDTH_THRESHOLD || heightDiff > HEIGHT_THRESHOLD) {
         detected = true;
       }
 
