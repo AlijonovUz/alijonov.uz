@@ -1,14 +1,25 @@
 /**
  * Security utilities to protect website content:
- * - Disables and clears browser console automatically
+ * - Disables and clears browser console automatically in real-time
  * - Protects against DOM/Style tampering from DevTools Elements panel
  * - Prevents copying, selecting, dragging, and iframe clickjacking
  */
 
-// Initialize console disabling and auto-clearing
+// Initialize console disabling and ultra-fast auto-clearing (20ms + requestAnimationFrame)
 export const initConsoleProtection = () => {
   try {
-    const noop = () => {};
+    const clearConsole = () => {
+      try {
+        console.clear();
+      } catch {
+        // ignore
+      }
+    };
+
+    const noop = () => {
+      clearConsole();
+    };
+
     const methods = [
       'log',
       'debug',
@@ -38,16 +49,17 @@ export const initConsoleProtection = () => {
       }
     });
 
-    // Auto-clear console continuously
-    setInterval(() => {
-      try {
-        console.clear();
-      } catch {
-        // ignore
-      }
-    }, 800);
+    // 1. High-frequency 20ms auto-clear interval so any Enter command result is wiped immediately
+    setInterval(clearConsole, 20);
 
-    // Freeze console object to prevent restoring methods
+    // 2. Continuous requestAnimationFrame clearing (every display frame, ~16ms)
+    const frameClear = () => {
+      clearConsole();
+      requestAnimationFrame(frameClear);
+    };
+    requestAnimationFrame(frameClear);
+
+    // 3. Freeze console object to prevent restoring methods
     try {
       Object.freeze(window.console);
     } catch {
@@ -118,7 +130,6 @@ export const initInteractionProtection = () => {
 
   // 2. Prevent Copy & Cut
   const handleCopyCut = (e) => {
-    // Allow copying inside input or textarea if user types something
     const tag = e.target && e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') {
       return;
