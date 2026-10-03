@@ -1,21 +1,35 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Custom hook to detect if browser DevTools is open.
- * Uses:
- * 1. Window dimension differences (docked DevTools - right, bottom, left)
- * 2. Console object getter/toString execution triggers (undocked DevTools)
+ * Synchronous check for DevTools status
+ */
+export const checkIsDevToolsOpen = () => {
+  if (typeof window === 'undefined') return false;
+  if (!window.innerWidth || !window.outerWidth) return false;
+
+  const threshold = 160;
+  const widthDiff = window.outerWidth - window.innerWidth;
+  const heightDiff = window.outerHeight - window.innerHeight;
+
+  if (widthDiff > threshold || heightDiff > threshold) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Custom hook to detect if browser DevTools is open in real-time.
  */
 const useDevToolsDetector = () => {
-  const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
+  // Initialize synchronously on first render so routes/APIs are never called if DevTools is already open
+  const [isDevToolsOpen, setIsDevToolsOpen] = useState(checkIsDevToolsOpen);
 
   useEffect(() => {
-    let isOpen = false;
-    // DevTools panels are typically >= 250px. Normal browser chrome (tabs+url+bookmarks) is < 180px.
-    const threshold = 220;
+    let isOpen = checkIsDevToolsOpen();
+    const threshold = 160;
 
     const check = () => {
-      // Guard against initial unmeasured render
       if (!window.innerWidth || !window.innerHeight || !window.outerWidth || !window.outerHeight) {
         return;
       }
@@ -60,15 +74,14 @@ const useDevToolsDetector = () => {
       }
     };
 
-    // Run check after initial layout is ready
-    const initialTimer = setTimeout(check, 100);
+    // Run check immediately
+    check();
 
-    // Check periodically (every 250ms) and immediately on window resize
-    const interval = setInterval(check, 250);
+    // Check periodically (every 150ms) and on window resize
+    const interval = setInterval(check, 150);
     window.addEventListener('resize', check);
 
     return () => {
-      clearTimeout(initialTimer);
       clearInterval(interval);
       window.removeEventListener('resize', check);
     };

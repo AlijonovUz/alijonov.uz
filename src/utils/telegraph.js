@@ -1,13 +1,24 @@
 import axios from 'axios';
+import { checkIsDevToolsOpen } from '../hooks/useDevToolsDetector';
 
 const TELEGRAPH_TOKEN = import.meta.env.VITE_TELEGRAPH_TOKEN;
 const CACHE_PREFIX = 'tg_cache_';
 const LIST_CACHE_KEY = `${CACHE_PREFIX}page_list`;
 
+// Add request interceptor to prevent any Telegraph requests if DevTools is open
+axios.interceptors.request.use((config) => {
+  if (checkIsDevToolsOpen()) {
+    return Promise.reject(new Error('DevTools blocked request'));
+  }
+  return config;
+});
+
 /**
  * Get item from cache (regardless of expiration, for instant SWR render)
  */
 export function getCachedData(key) {
+  if (checkIsDevToolsOpen()) return null;
+
   try {
     const itemStr = localStorage.getItem(key);
     if (!itemStr) return null;
@@ -23,6 +34,8 @@ export function getCachedData(key) {
  * Save item to cache
  */
 export function setCachedData(key, data) {
+  if (checkIsDevToolsOpen()) return;
+
   try {
     const item = {
       data,
@@ -38,6 +51,10 @@ export function setCachedData(key, data) {
  * Fetch fresh list from Telegraph API
  */
 export async function fetchFreshPageList() {
+  if (checkIsDevToolsOpen()) {
+    return [];
+  }
+
   const response = await axios.get(
     `https://api.telegra.ph/getPageList?access_token=${TELEGRAPH_TOKEN}&limit=100`
   );
@@ -64,12 +81,16 @@ export async function fetchFreshPageList() {
  * 2. Fetches fresh list in the background and calls onFreshData callback if data updated.
  */
 export async function getTelegraphPageList(onFreshData) {
+  if (checkIsDevToolsOpen()) {
+    return [];
+  }
+
   const cached = getCachedData(LIST_CACHE_KEY);
 
   // Background fetch (Revalidate)
   const networkPromise = fetchFreshPageList()
     .then((freshPages) => {
-      if (onFreshData) {
+      if (onFreshData && !checkIsDevToolsOpen()) {
         onFreshData(freshPages);
       }
       return freshPages;
@@ -91,6 +112,10 @@ export async function getTelegraphPageList(onFreshData) {
  * Fetch fresh post from Telegraph API
  */
 export async function fetchFreshPost(slug) {
+  if (checkIsDevToolsOpen()) {
+    return null;
+  }
+
   const cacheKey = `${CACHE_PREFIX}post_${slug}`;
   const response = await axios.get(
     `https://api.telegra.ph/getPage/${slug}?return_content=true`
@@ -117,13 +142,17 @@ export async function fetchFreshPost(slug) {
  * Fetch single post with SWR support
  */
 export async function getTelegraphPost(slug, onFreshData) {
+  if (checkIsDevToolsOpen()) {
+    return null;
+  }
+
   const cacheKey = `${CACHE_PREFIX}post_${slug}`;
   const cached = getCachedData(cacheKey);
 
   // Background fetch (Revalidate)
   const networkPromise = fetchFreshPost(slug)
     .then((freshPost) => {
-      if (onFreshData && freshPost) {
+      if (onFreshData && freshPost && !checkIsDevToolsOpen()) {
         onFreshData(freshPost);
       }
       return freshPost;
@@ -139,4 +168,3 @@ export async function getTelegraphPost(slug, onFreshData) {
 
   return await networkPromise;
 }
-
