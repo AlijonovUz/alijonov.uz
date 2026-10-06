@@ -1,4 +1,5 @@
 import raqamliNazoratImg from '../assets/images/projects/raqamli-nazorat.png';
+import raqamliMuloqotImg from '../assets/images/projects/raqamli-muloqot.png';
 import eKomplektasiyaImg from '../assets/images/projects/e-komplektasiya.png';
 import mGazImg from '../assets/images/projects/m-gaz.png';
 
@@ -9,6 +10,13 @@ export const projects = [
     description: 'Kompaniya faoliyatini boshqarish uchun kompleks ERP tizimi: loyihalar, vazifalar, moliya, yig‘ilishlar, vakansiyalar va tahliliy hisobotlar.',
     image: raqamliNazoratImg,
     url: 'https://boshqaruv.raqamlinazorat.uz/',
+  },
+  {
+    id: 'raqamli-muloqot',
+    title: 'Raqamli Muloqot',
+    description: "Platforma video, audio va matnli muloqot vositalarini yagona tizimga birlashtiradi. Foydalanuvchilar istalgan qurilmadan yig'ilishlarga ulanish imkoniyatiga ega bo'ladi.",
+    image: raqamliMuloqotImg,
+    url: 'https://muloqot.raqamlinazorat.uz/',
   },
   {
     id: 'e-komplektatsiya',
