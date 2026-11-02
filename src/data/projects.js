@@ -1,27 +1,19 @@
-import raqamliNazoratImg from '../assets/images/projects/raqamli-nazorat.png';
-import eKomplektasiyaImg from '../assets/images/projects/e-komplektasiya.png';
-import mGazImg from '../assets/images/projects/m-gaz.png';
+import authlyImg from '../assets/images/projects/authly.jpg';
+import meetlyImg from '../assets/images/projects/meetly.svg';
 
 export const projects = [
   {
-    id: 'raqamli-nazorat',
-    title: 'Raqamli Nazorat',
-    description: 'Kompaniya faoliyatini boshqarish uchun kompleks ERP tizimi: loyihalar, vazifalar, moliya, yig‘ilishlar, vakansiyalar va tahliliy hisobotlar.',
-    image: raqamliNazoratImg,
-    url: 'https://boshqaruv.raqamlinazorat.uz/',
+    id: 'authly',
+    title: 'Authly',
+    description: 'Barcha xizmat va platformalarga yagona raqamli profil orqali xavfsiz hamda tezkor kirish imkonini beruvchi zamonaviy autentifikatsiya ekotizimi.',
+    image: authlyImg,
+    url: 'https://authly.uz',
   },
   {
-    id: 'e-komplektatsiya',
-    title: 'E-Komplektatsiya',
-    description: 'Gaz sohasi uchun korporativ portal va xaridlar platformasi',
-    image: eKomplektasiyaImg,
-    url: 'https://raqamlinazorat.uz/project.html?id=12',
-  },
-  {
-    id: 'm-gaz',
-    title: 'M-Gaz',
-    description: 'Gaz hisobini yuritish va monitoring qilish uchun ERP tizimi',
-    image: mGazImg,
-    url: 'https://raqamlinazorat.uz/project.html?id=9',
+    id: 'meetly',
+    title: 'Meetly',
+    description: "Onlayn audio/video yig'ilishlar va videokonferensiyalarni tashkil etish platformasi.",
+    image: meetlyImg,
+    url: 'https://meetly.uz',
   },
 ];
